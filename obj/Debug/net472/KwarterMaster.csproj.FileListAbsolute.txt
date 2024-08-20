@@ -1,0 +1,12 @@
+E:\programming\ksp\GameData\KwarterMaster\Plugins\net472\KwarterMaster.dll
+E:\programming\ksp\GameData\KwarterMaster\Plugins\net472\KwarterMaster.pdb
+E:\programming\ksp\GameData\KwarterMaster\obj\Debug\net472\KwarterMaster.csproj.AssemblyReference.cache
+E:\programming\ksp\GameData\KwarterMaster\obj\Debug\net472\KwarterMaster.GeneratedMSBuildEditorConfig.editorconfig
+E:\programming\ksp\GameData\KwarterMaster\obj\Debug\net472\KwarterMaster.AssemblyInfoInputs.cache
+E:\programming\ksp\GameData\KwarterMaster\obj\Debug\net472\KwarterMaster.AssemblyInfo.cs
+E:\programming\ksp\GameData\KwarterMaster\obj\Debug\net472\KwarterMaster.csproj.CoreCompileInputs.cache
+E:\programming\ksp\GameData\KwarterMaster\obj\Debug\net472\KwarterM.55C181E3.Up2Date
+E:\programming\ksp\GameData\KwarterMaster\obj\Debug\net472\KwarterMaster.dll
+E:\programming\ksp\GameData\KwarterMaster\obj\Debug\net472\KwarterMaster.pdb
+E:\programming\ksp\GameData\KwarterMaster\Plugins\net472\UnityEngine.AnimationModule.dll
+E:\programming\ksp\GameData\KwarterMaster\Plugins\net472\UnityEngine.SharedInternalsModule.dll
