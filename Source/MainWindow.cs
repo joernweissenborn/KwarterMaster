@@ -36,6 +36,19 @@ namespace KwarterMaster
         {
             Debug.Log("MainWindow Start method called.");
 
+            ResourceFlowGraph resourceFlowGraph = new ResourceFlowGraph();
+            resourceFlowGraph.AddHarvester("Ore", 0.5f, 10);
+            resourceFlowGraph.AddFlow("Ore", "Oxidizer", 0.5f, 10);
+            resourceFlowGraph.AddFlow("Ore", "LiquidFuel", 0.5f, 10);
+            resourceFlowGraph.AddHarvester("Water", 0.5f, 10);
+            resourceFlowGraph.AddFlow("Water", "o2", 0.5f, 10);
+            resourceFlowGraph.AddFlow("Water", "h2", 0.5f, 10);
+            resourceFlowGraph.AddFlow("o2", "Oxidizer", 0.5f, 10);
+            resourceFlowGraph.AssignXLevels();
+            resourceFlowGraph.AssignYLevels();
+            resourceFlowGraph.DebugGraph();
+            return;
+
             _closeButton = new ButtonView("Close", () => _showWindow = false);
             _drillTabButton = new ButtonView("Drills", () => _currentTab = TabType.Drill);
             _converterTabButton = new ButtonView("Converters", () => _currentTab = TabType.Converter);
@@ -109,9 +122,7 @@ namespace KwarterMaster
 
         void OnGUI()
         {
-            //Debug.Log("MainWindow OnGUI method called.");
-
-            // Apply the stock KSP skin
+            return;
             GUI.skin = HighLogic.Skin;
 
             if (_showWindow)
