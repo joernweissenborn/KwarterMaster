@@ -37,7 +37,7 @@ namespace KwarterMaster
             Debug.Log("MainWindow Start method called.");
 
             ResourceFlowGraph resourceFlowGraph = new ResourceFlowGraph();
-            resourceFlowGraph.AddHarvester("Ore", 0.5f, 10);
+            resourceFlowGraph.AddHarvester("Ore", 0.1f, 10);
             resourceFlowGraph.AddFlow("Ore", "Oxidizer", 0.5f, 10);
             resourceFlowGraph.AddFlow("Ore", "LiquidFuel", 0.5f, 10);
             resourceFlowGraph.AddHarvester("Water", 0.5f, 10);
@@ -46,8 +46,15 @@ namespace KwarterMaster
             resourceFlowGraph.AddFlow("o2", "Oxidizer", 0.5f, 10);
             resourceFlowGraph.AssignXLevels();
             resourceFlowGraph.AssignYLevels();
+            resourceFlowGraph.SetInputRates();
+            resourceFlowGraph.SetECUsages();
+            resourceFlowGraph.SetStorage("Ore", 10000);
+            resourceFlowGraph.SetStorage("Oxidizer", 100);
+            resourceFlowGraph.SetStorage("LiquidFuel", 100);
+            resourceFlowGraph.SetStorage("Water", 100);
+            resourceFlowGraph.SetStorage("o2", 100);
+            resourceFlowGraph.SetStorage("h2", 10);
             resourceFlowGraph.DebugGraph();
-            return;
 
             _closeButton = new ButtonView("Close", () => _showWindow = false);
             _drillTabButton = new ButtonView("Drills", () => _currentTab = TabType.Drill);
@@ -68,7 +75,7 @@ namespace KwarterMaster
             _efficiencyManager = new EfficiencyManager(true, 5, 50); // Example initialization
             _toolbarView = new ToolbarView(_efficiencyManager);
 
-            _resourceView = new ResourceView(_tableViewHarvester.TotalWidth);
+            _resourceView = new ResourceView(resourceFlowGraph, _tableViewHarvester.TotalWidth);
 
             // Load the button texture
             _buttonTexture = new Texture2D(38, 38);
@@ -122,7 +129,6 @@ namespace KwarterMaster
 
         void OnGUI()
         {
-            return;
             GUI.skin = HighLogic.Skin;
 
             if (_showWindow)
@@ -144,25 +150,27 @@ namespace KwarterMaster
             // Update harvester data
             UpdateHarvesterData();
 
-            GUILayout.BeginHorizontal();
-            _drillTabButton.Draw();
-            _converterTabButton.Draw();
-            _flowTabButton.Draw();
+            // GUILayout.BeginHorizontal();
+            // _drillTabButton.Draw();
+            // _converterTabButton.Draw();
+            // _flowTabButton.Draw();
 
-            GUILayout.EndHorizontal();
+            // GUILayout.EndHorizontal();
 
-            switch (_currentTab)
-            {
-                case TabType.Drill:
-                    _tableViewHarvester.Draw();
-                    break;
-                case TabType.Converter:
-                    _tableViewConverter.Draw();
-                    break;
-                case TabType.Resource:
-                    _resourceView.Draw();
-                    break;
-            }
+            // switch (_currentTab)
+            // {
+            //     case TabType.Drill:
+            //         _tableViewHarvester.Draw();
+            //         break;
+            //     case TabType.Converter:
+            //         _tableViewConverter.Draw();
+            //         break;
+            //     case TabType.Resource:
+            //         _resourceView.Draw();
+            //         break;
+            // }
+
+            _resourceView.Draw();
 
             // Draw the toolbar
             _toolbarView.Draw();

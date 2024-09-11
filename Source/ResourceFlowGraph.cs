@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -63,32 +64,63 @@ namespace KwarterMaster
             return flows;
         }
 
-        public float GetProductionRate(string resource)
+        public void VisitNodes(Action<ResourceNode> visitor)
         {
-            float productionRate = 0f;
-            foreach (var flow in resourceFlows.Values)
+            foreach (var node in resourceNodes.Values)
             {
-                if (flow.Output.Name == resource)
-                {
-                    productionRate += flow.Rate;
-                }
+                visitor(node);
             }
-
-            return productionRate;
         }
 
-        public float GetConsumptionRate(string resource)
+        public void VisitFlows(Action<ResourceFlow> visitor, bool include_harvesters = false)
         {
-            float consumptionRate = 0f;
-            foreach (var flow in resourceFlows.Values)
-            {
-                if (!flow.IsHarvester() && flow.Input.Name == resource)
+            foreach (var flow in resourceFlows.Values) if (include_harvesters || !flow.IsHarvester())
                 {
-                    consumptionRate += flow.Rate;
+                    visitor(flow);
                 }
+        }
+
+        public float GetInputRate(ResourceNode node)
+        {
+            float inputRate = 0f;
+            foreach (var flow in GetInputFlows(node, true))
+            {
+                inputRate += flow.Rate;
             }
 
-            return consumptionRate;
+            return inputRate;
+        }
+
+        public float GetOutputRate(ResourceNode node)
+        {
+            float outputRate = 0f;
+            foreach (var flow in GetOutputFlows(node))
+            {
+                outputRate += flow.Rate;
+            }
+
+            return outputRate;
+        }
+
+        public float GetECUsage(ResourceNode node)
+        {
+            float ecUsage = 0f;
+            foreach (var flow in GetInputFlows(node, true))
+            {
+                ecUsage += flow.ECUsage;
+            }
+
+            return ecUsage;
+        }
+
+        public void SetInputRates()
+        {
+            VisitNodes(node => node.InputRate = GetInputRate(node));
+        }
+
+        public void SetECUsages()
+        {
+            VisitNodes(node => node.ECUsage += GetECUsage(node));
         }
 
         public void SetStorage(string resource, float storageAmount)
@@ -99,7 +131,7 @@ namespace KwarterMaster
             }
             else
             {
-                resourceNodes[resource] = new ResourceNode(resource, storageAmount);
+                throw new ArgumentException($"Resource {resource} not found in graph");
             }
         }
 
@@ -259,6 +291,27 @@ namespace KwarterMaster
             }
         }
 
+        public int GetMaxXLevel()
+        {
+            int maxXLevel = -1;
+            foreach (var node in resourceNodes.Values)
+            {
+                maxXLevel = Mathf.Max(maxXLevel, node.XLevel);
+            }
+
+            return maxXLevel;
+        }
+
+        public int GetMaxYLevel()
+        {
+            int maxYLevel = -1;
+            foreach (var node in resourceNodes.Values)
+            {
+                maxYLevel = Mathf.Max(maxYLevel, node.YLevel);
+            }
+
+            return maxYLevel;
+        }
 
         public void DebugGraph()
         {
