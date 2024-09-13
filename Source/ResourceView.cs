@@ -5,10 +5,10 @@ namespace KwarterMaster
     public class ResourceView
     {
         private Vector2 _scrollPosition = Vector2.zero;
-        private int _width;
+        private float _width;
         private ResourceFlowGraph _resourceFlowGraph;
 
-        public ResourceView(ResourceFlowGraph resourceFlowGraph, int width)
+        public ResourceView(ResourceFlowGraph resourceFlowGraph, float width)
         {
             _resourceFlowGraph = resourceFlowGraph;
             _width = width;

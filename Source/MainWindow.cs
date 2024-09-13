@@ -6,76 +6,53 @@ namespace KwarterMaster
 {
     public class MainWindow : MonoBehaviour
     {
-        private enum TabType
-        {
-            Drill,
-            Converter,
-            Resource
-        }
-
-        private TabType _currentTab = TabType.Drill;
-        private ButtonView _drillTabButton;
-        private ButtonView _converterTabButton;
-        private ButtonView _flowTabButton;
-        private TableInfo _tableInfoHarvester;
-        private TableView _tableViewHarvester;
-        private TableInfo _tableInfoConverter;
-        private TableView _tableViewConverter;
+        private static readonly string _windowTitle = "KwaterMaster";
         private ResourceView _resourceView;
         private ToolbarView _toolbarView;
         private ButtonView _closeButton;
         private Texture2D _buttonTexture;
         private ApplicationLauncherButton _toolbarButton;
-        private bool _showWindow = true;
+        private bool _showWindow;
         private Rect _windowRect;
         private EfficiencyManager _efficiencyManager;
         private HarvesterManager _harvesterManager;
         private ConversionManager _converterManager;
-
+        private ResourceFlowGraph _resourceFlowGraph;
         void Start()
         {
             Debug.Log("MainWindow Start method called.");
+            _windowRect = new Rect(100, 100, 1000, 300);
 
-            ResourceFlowGraph resourceFlowGraph = new ResourceFlowGraph();
-            resourceFlowGraph.AddHarvester("Ore", 0.1f, 10);
-            resourceFlowGraph.AddFlow("Ore", "Oxidizer", 0.5f, 10);
-            resourceFlowGraph.AddFlow("Ore", "LiquidFuel", 0.5f, 10);
-            resourceFlowGraph.AddHarvester("Water", 0.5f, 10);
-            resourceFlowGraph.AddFlow("Water", "o2", 0.5f, 10);
-            resourceFlowGraph.AddFlow("Water", "h2", 0.5f, 10);
-            resourceFlowGraph.AddFlow("o2", "Oxidizer", 0.5f, 10);
-            resourceFlowGraph.AssignXLevels();
-            resourceFlowGraph.AssignYLevels();
-            resourceFlowGraph.SetInputRates();
-            resourceFlowGraph.SetECUsages();
-            resourceFlowGraph.SetStorage("Ore", 10000);
-            resourceFlowGraph.SetStorage("Oxidizer", 100);
-            resourceFlowGraph.SetStorage("LiquidFuel", 100);
-            resourceFlowGraph.SetStorage("Water", 100);
-            resourceFlowGraph.SetStorage("o2", 100);
-            resourceFlowGraph.SetStorage("h2", 10);
-            resourceFlowGraph.DebugGraph();
+            _resourceFlowGraph = new ResourceFlowGraph();
+            _resourceFlowGraph.AddHarvester("Ore", 0.1f, 10);
+            _resourceFlowGraph.AddHarvester("Fox", 0.1f, 10);
+            _resourceFlowGraph.AddFlow("Ore", "Oxidizer", 0.5f, 0.2f, 10);
+            _resourceFlowGraph.AddFlow("Ore", "LiquidFuel", 0.5f, 0.2f, 10);
+            _resourceFlowGraph.AddHarvester("Water", 5f, 10);
+            _resourceFlowGraph.AddFlow("Water", "o2", 0.5f, 0.2f, 10);
+            _resourceFlowGraph.AddFlow("Water", "h2", 0.5f, 0.2f, 10);
+            _resourceFlowGraph.AddFlow("o2", "Oxidizer", 0.5f, 0.2f, 10);
+            _resourceFlowGraph.AddFlow("Fox", "Oxidizer", 0.5f, 0.2f, 10);
+            _resourceFlowGraph.AssignXLevels();
+            _resourceFlowGraph.AssignYLevels();
+            _resourceFlowGraph.SetStorage("Ore", 10000);
+            _resourceFlowGraph.SetStorage("Oxidizer", 100);
+            _resourceFlowGraph.SetStorage("LiquidFuel", 100);
+            _resourceFlowGraph.SetStorage("Water", 100);
+            _resourceFlowGraph.SetStorage("o2", 100);
+            _resourceFlowGraph.SetStorage("h2", 10);
+            _resourceFlowGraph.DebugGraph();
 
             _closeButton = new ButtonView("Close", () => _showWindow = false);
-            _drillTabButton = new ButtonView("Drills", () => _currentTab = TabType.Drill);
-            _converterTabButton = new ButtonView("Converters", () => _currentTab = TabType.Converter);
-            _flowTabButton = new ButtonView("Ressources", () => _currentTab = TabType.Resource);
 
             _harvesterManager = new HarvesterManager();
-            _tableInfoHarvester = new TableInfo(new string[]
-            { "Drill Name", "Output[Cur/Max]", "EC[Cur/Max]" }, new int[] { 400, 150, 150 });
-            _tableViewHarvester = new TableView(_tableInfoHarvester);
 
             _converterManager = new ConversionManager();
-            _tableInfoConverter = new TableInfo(new string[]
-            { "Converter Name", "Input Resource", "Input Rate", "Output Resource", "Output Rate", "EC Input" },
-                new int[] { 200, 100, 100, 100, 100, 100 });
-            _tableViewConverter = new TableView(_tableInfoConverter);
 
             _efficiencyManager = new EfficiencyManager(true, 5, 50); // Example initialization
             _toolbarView = new ToolbarView(_efficiencyManager);
 
-            _resourceView = new ResourceView(resourceFlowGraph, _tableViewHarvester.TotalWidth);
+            _resourceView = new ResourceView(_resourceFlowGraph, _windowRect.width);
 
             // Load the button texture
             _buttonTexture = new Texture2D(38, 38);
@@ -106,8 +83,7 @@ namespace KwarterMaster
             }
 
             // Initialize other variables
-            _showWindow = false;
-            _windowRect = new Rect(100, 100, 400, 300);
+            _showWindow = true;
         }
 
         void OnDestroy()
@@ -133,51 +109,24 @@ namespace KwarterMaster
 
             if (_showWindow)
             {
-                if (_tableViewHarvester != null)
-                {
-                    _windowRect.width = _tableViewHarvester.TotalWidth;
-                    _windowRect = GUILayout.Window(0, _windowRect, DrawWindow, "My Mod Window");
-                }
-                else
-                {
-                    Debug.LogError("_tableView is null in OnGUI method.");
-                }
+                _windowRect = GUILayout.Window(0, _windowRect, DrawWindow, _windowTitle);
             }
         }
 
         private void DrawWindow(int windowID)
         {
-            // Update harvester data
+                        // Add the close button in the upper right corner
+            if (GUI.Button(new Rect(_windowRect.width - 25, 5, 20, 20), "X"))
+            {
+                _showWindow = false;
+            }
             UpdateHarvesterData();
 
-            // GUILayout.BeginHorizontal();
-            // _drillTabButton.Draw();
-            // _converterTabButton.Draw();
-            // _flowTabButton.Draw();
-
-            // GUILayout.EndHorizontal();
-
-            // switch (_currentTab)
-            // {
-            //     case TabType.Drill:
-            //         _tableViewHarvester.Draw();
-            //         break;
-            //     case TabType.Converter:
-            //         _tableViewConverter.Draw();
-            //         break;
-            //     case TabType.Resource:
-            //         _resourceView.Draw();
-            //         break;
-            // }
+            _resourceFlowGraph.CalculateProductionRates();
 
             _resourceView.Draw();
 
-            // Draw the toolbar
             _toolbarView.Draw();
-
-
-            // Draw the close button
-            _closeButton.Draw();
 
             GUI.DragWindow();
         }
@@ -186,8 +135,6 @@ namespace KwarterMaster
         {
             _converterManager.Update();
             _harvesterManager.Update();
-            _tableInfoHarvester.Data = _efficiencyManager.GenerateHarvesterTableData(_harvesterManager.GetHarvesters());
-            _tableInfoConverter.Data = _efficiencyManager.GenerateConverterTableData(_converterManager.GetConverters());
         }
     }
 }

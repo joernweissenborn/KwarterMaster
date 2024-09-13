@@ -7,66 +7,97 @@ namespace KwarterMaster
     public class ResourceFlowGraph
     {
         private Dictionary<(string, string), ResourceFlow> resourceFlows;
-        private Dictionary<string, ResourceNode> resourceNodes;
+        private Dictionary<string, HarvesterNode> harvesterNodes;
+        private Dictionary<string, ProductNode> productNodes;
 
         public ResourceFlowGraph()
         {
             resourceFlows = new Dictionary<(string, string), ResourceFlow>();
-            resourceNodes = new Dictionary<string, ResourceNode>();
+            harvesterNodes = new Dictionary<string, HarvesterNode>();
+            productNodes = new Dictionary<string, ProductNode>();
         }
 
-        public void AddFlow(string inputResource, string outputResource, float rate, float ecUsage)
+        private bool KnownResource(string resource)
         {
-            if (inputResource != null && !resourceNodes.ContainsKey(inputResource))
-            {
-                resourceNodes[inputResource] = new ResourceNode(inputResource);
-            }
+            return harvesterNodes.ContainsKey(resource) || productNodes.ContainsKey(resource);
+        }
 
-            if (!resourceNodes.ContainsKey(outputResource))
+        private ResourceNode GetNode(string resource)
+        {
+            if (harvesterNodes.ContainsKey(resource))
             {
-                resourceNodes[outputResource] = new ResourceNode(outputResource);
+                return harvesterNodes[resource];
+            }
+            else if (productNodes.ContainsKey(resource))
+            {
+                return productNodes[resource];
+            }
+            else
+            {
+                throw new ArgumentException($"Resource {resource} not found in graph");
+            }
+        }
+
+        private List<ResourceNode> GetNodes()
+        {
+            List<ResourceNode> nodes = new List<ResourceNode>();
+            nodes.AddRange(harvesterNodes.Values);
+            nodes.AddRange(productNodes.Values);
+            return nodes;
+        }
+
+        public void AddFlow(string inputResource, string outputResource, float inputRate, float outputRate, float ecUsage)
+        {
+            if (inputResource != null)
+            {
+
+                if (!KnownResource(inputResource))
+                {
+                    Debug.Log($"Adding product node for {inputResource}");
+                    productNodes[inputResource] = new ProductNode(inputResource);
+                }
+                if (!KnownResource(outputResource))
+                {
+                    Debug.Log($"Adding product node for {outputResource}");
+                    productNodes[outputResource] = new ProductNode(outputResource);
+                }
+            }
+            else
+            {
+                if (!KnownResource(outputResource))
+                {
+                    Debug.Log($"Adding harvester node for {outputResource}");
+                    harvesterNodes[outputResource] = new HarvesterNode(outputResource);
+                }
             }
 
             var flowKey = (inputResource ?? "", outputResource);
             if (!resourceFlows.ContainsKey(flowKey))
             {
                 resourceFlows[flowKey] = new ResourceFlow(
-                    inputResource != null ? resourceNodes[inputResource] : null,
-                    resourceNodes[outputResource],
-                    rate,
+                    inputResource != null ? GetNode(inputResource) : null,
+                    GetNode(outputResource),
+                    inputRate,
+                    outputRate,
                     ecUsage
                 );
             }
             else
             {
-                resourceFlows[flowKey].Rate += rate;
+                resourceFlows[flowKey].InputRate += inputRate;
+                resourceFlows[flowKey].OutputRate += outputRate;
                 resourceFlows[flowKey].ECUsage += ecUsage;
             }
         }
 
-        public void AddHarvester(string outputResource, float rate, float ecUsage)
+        public void AddHarvester(string outputResource, float outputRate, float ecUsage)
         {
-            AddFlow(null, outputResource, rate, ecUsage);
-        }
-
-        // Get all flows with the given resource as input
-        public List<ResourceFlow> GetProductFlows(string resource)
-        {
-            List<ResourceFlow> flows = new List<ResourceFlow>();
-            foreach (var flow in resourceFlows.Values)
-            {
-                if (flow.Input != null && flow.Input.Name == resource)
-                {
-                    flows.Add(flow);
-                }
-            }
-
-            return flows;
+            AddFlow(null, outputResource, 0, outputRate, ecUsage);
         }
 
         public void VisitNodes(Action<ResourceNode> visitor)
         {
-            foreach (var node in resourceNodes.Values)
+            foreach (var node in GetNodes())
             {
                 visitor(node);
             }
@@ -80,26 +111,26 @@ namespace KwarterMaster
                 }
         }
 
-        public float GetInputRate(ResourceNode node)
+        public float GetProductionRate(ResourceNode node)
         {
-            float inputRate = 0f;
+            float productionRate = 0f;
             foreach (var flow in GetInputFlows(node, true))
             {
-                inputRate += flow.Rate;
+                productionRate += flow.OutputRate;
             }
 
-            return inputRate;
+            return productionRate;
         }
 
-        public float GetOutputRate(ResourceNode node)
+        public float GetActualProductionRate(ResourceNode node)
         {
-            float outputRate = 0f;
-            foreach (var flow in GetOutputFlows(node))
+            float productionRate = 0f;
+            foreach (var flow in GetInputFlows(node))
             {
-                outputRate += flow.Rate;
+                productionRate += flow.ActualOutputRate;
             }
 
-            return outputRate;
+            return productionRate;
         }
 
         public float GetECUsage(ResourceNode node)
@@ -113,26 +144,42 @@ namespace KwarterMaster
             return ecUsage;
         }
 
-        public void SetInputRates()
+        private void CalculateActualNodeProductionRate(ProductNode node)
         {
-            VisitNodes(node => node.InputRate = GetInputRate(node));
+            node.ProductionRate = GetProductionRate(node);
+            node.ActualProductionRate = GetActualProductionRate(node);
+            Debug.Log($"Node {node.Name} actual production rate: {node.ActualProductionRate}");
+
+            float actualInput = node.ActualProductionRate / GetOutputFlows(node).Count;
+            foreach (var flow in GetOutputFlows(node))
+            {
+                flow.ActualInputRate = actualInput;
+                Debug.Log($"Flow from {node.Name} to {flow.Output.Name} actual input rate: {flow.ActualInputRate}");
+                CalculateActualNodeProductionRate((ProductNode)flow.Output);
+            }
         }
 
-        public void SetECUsages()
+        public void CalculateProductionRates()
         {
-            VisitNodes(node => node.ECUsage += GetECUsage(node));
+            foreach (var node in harvesterNodes.Values)
+            {
+                // Calculate production rate for harvesters
+                node.ProductionRate = GetProductionRate(node);
+                //Debug.Log($"Harvester {node.Name} production rate: {node.ProductionRate}");
+
+                float actualInput = node.GetActualProductionRate() / GetOutputFlows(node).Count;
+                foreach (var flow in GetOutputFlows(node))
+                {
+                    flow.ActualInputRate = actualInput;
+                    //Debug.Log($"Flow from {node.Name} to {flow.Output.Name} actual input rate: {flow.ActualInputRate}");
+                    CalculateActualNodeProductionRate((ProductNode)flow.Output);
+                }
+            }
         }
 
         public void SetStorage(string resource, float storageAmount)
         {
-            if (resourceNodes.ContainsKey(resource))
-            {
-                resourceNodes[resource].AddStorage(storageAmount);
-            }
-            else
-            {
-                throw new ArgumentException($"Resource {resource} not found in graph");
-            }
+            GetNode(resource).AvailableStorage = storageAmount;
         }
 
         public List<ResourceFlow> GetInputFlows(ResourceNode node, bool include_harvesters = false)
@@ -205,7 +252,7 @@ namespace KwarterMaster
             }
 
             // Traverse all nodes in the graph
-            foreach (var node in resourceNodes.Values)
+            foreach (var node in GetNodes())
             {
                 if (!visitedNodes.Contains(node))
                 {
@@ -270,31 +317,29 @@ namespace KwarterMaster
             }
 
             // Start by processing all the harvesters (nodes with no inputs)
-            foreach (var node in resourceNodes.Values)
+            foreach (var node in harvesterNodes.Values)
             {
-                if (GetInputFlows(node).Count == 0)  // If the node is a harvester
+
+                if (node.YLevel == -1)  // Ensure the harvester itself has a Y level
                 {
-                    if (node.YLevel == -1)  // Ensure the harvester itself has a Y level
-                    {
-                        globalMaxYLevel++;  // Increment the global max Y level
-                        node.YLevel = globalMaxYLevel;  // Start after the maximum Y level encountered
-                        Debug.Log($"Harvester {node.Name} assigned YLevel {node.YLevel}");
-                    }
-
-                    // Visit all its outputs
-                    VisitNodeForYLevel(node);
-
-                    // After processing this harvester and its outputs, update globalMaxYLevel
-                    globalMaxYLevel = Mathf.Max(globalMaxYLevel, currentYLevels.ContainsKey(node.XLevel) ? currentYLevels[node.XLevel] : globalMaxYLevel);
-                    Debug.Log($"Updated globalMaxYLevel to {globalMaxYLevel} after processing harvester {node.Name}");
+                    globalMaxYLevel++;  // Increment the global max Y level
+                    node.YLevel = globalMaxYLevel;  // Start after the maximum Y level encountered
+                    Debug.Log($"Harvester {node.Name} assigned YLevel {node.YLevel}");
                 }
+
+                // Visit all its outputs
+                VisitNodeForYLevel(node);
+
+                // After processing this harvester and its outputs, update globalMaxYLevel
+                globalMaxYLevel = Mathf.Max(globalMaxYLevel, currentYLevels.ContainsKey(node.XLevel) ? currentYLevels[node.XLevel] : globalMaxYLevel);
+                Debug.Log($"Updated globalMaxYLevel to {globalMaxYLevel} after processing harvester {node.Name}");
             }
         }
 
         public int GetMaxXLevel()
         {
             int maxXLevel = -1;
-            foreach (var node in resourceNodes.Values)
+            foreach (var node in productNodes.Values)
             {
                 maxXLevel = Mathf.Max(maxXLevel, node.XLevel);
             }
@@ -305,7 +350,7 @@ namespace KwarterMaster
         public int GetMaxYLevel()
         {
             int maxYLevel = -1;
-            foreach (var node in resourceNodes.Values)
+            foreach (var node in productNodes.Values)
             {
                 maxYLevel = Mathf.Max(maxYLevel, node.YLevel);
             }
@@ -317,10 +362,10 @@ namespace KwarterMaster
         {
             foreach (var flow in resourceFlows.Values)
             {
-                Debug.Log($"Flow from {(flow.Input != null ? flow.Input.Name : "Harvester")} to {flow.Output.Name}: {flow.Rate}");
+                Debug.Log($"Flow from {(flow.Input != null ? flow.Input.Name : "Harvester")} to {flow.Output.Name}: {flow.OutputRate}");
             }
 
-            foreach (var node in resourceNodes.Values)
+            foreach (var node in productNodes.Values)
             {
                 Debug.Log($"Storage for {node.Name}: {node.AvailableStorage}");
                 Debug.Log($"XLevel for {node.Name}: {node.XLevel}, YLevel for {node.Name}: {node.YLevel}");
