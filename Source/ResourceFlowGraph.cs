@@ -17,6 +17,20 @@ namespace KwarterMaster
             productNodes = new Dictionary<string, ProductNode>();
         }
 
+        public void Clear()
+        {
+            resourceFlows.Clear();
+            harvesterNodes.Clear();
+            productNodes.Clear();
+        }
+
+        public void Update()
+        {
+            AssignXLevels();
+            AssignYLevels();
+            CalculateProductionRates();
+        }
+
         private bool KnownResource(string resource)
         {
             return harvesterNodes.ContainsKey(resource) || productNodes.ContainsKey(resource);
@@ -48,6 +62,7 @@ namespace KwarterMaster
 
         public void AddFlow(string inputResource, string outputResource, float inputRate, float outputRate, float ecUsage)
         {
+            Debug.Log($"Adding flow from {inputResource ?? "Harvester"} to {outputResource} with input rate {inputRate}, output rate {outputRate}, EC usage {ecUsage}");
             if (inputResource != null)
             {
 
@@ -177,9 +192,12 @@ namespace KwarterMaster
             }
         }
 
-        public void SetStorage(string resource, float storageAmount)
+        public void AddStorage(string resource, float storageAmount)
         {
-            GetNode(resource).Storage = storageAmount;
+            if (KnownResource(resource))
+            {
+                GetNode(resource).Storage += storageAmount;
+            }
         }
 
         public List<ResourceFlow> GetInputFlows(ResourceNode node, bool include_harvesters = false)

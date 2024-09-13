@@ -15,36 +15,33 @@ namespace KwarterMaster
         private bool _showWindow;
         private Rect _windowRect;
         private EfficiencyManager _efficiencyManager;
-        private HarvesterManager _harvesterManager;
-        private ConversionManager _converterManager;
         private ResourceFlowGraph _resourceFlowGraph;
+        private ResourcePartManager _resourcePartManager;
         void Start()
         {
             _windowRect = new Rect(100, 100, 1000, 300);
 
             _resourceFlowGraph = new ResourceFlowGraph();
-            _resourceFlowGraph.AddHarvester("Ore", 0.1f, 10);
-            _resourceFlowGraph.AddHarvester("Fox", 0.1f, 10);
-            _resourceFlowGraph.AddFlow("Ore", "Oxidizer", 0.5f, 0.2f, 10);
-            _resourceFlowGraph.AddFlow("Ore", "LiquidFuel", 0.5f, 0.2f, 10);
-            _resourceFlowGraph.AddHarvester("Water", 5f, 10);
-            _resourceFlowGraph.AddFlow("Water", "o2", 0.5f, 0.2f, 10);
-            _resourceFlowGraph.AddFlow("Water", "h2", 0.5f, 0.2f, 10);
-            _resourceFlowGraph.AddFlow("o2", "Oxidizer", 0.5f, 0.2f, 10);
-            _resourceFlowGraph.AddFlow("Fox", "Oxidizer", 0.5f, 0.2f, 10);
-            _resourceFlowGraph.AssignXLevels();
-            _resourceFlowGraph.AssignYLevels();
-            _resourceFlowGraph.SetStorage("Ore", 10000);
-            _resourceFlowGraph.SetStorage("Oxidizer", 100);
-            _resourceFlowGraph.SetStorage("LiquidFuel", 100);
-            _resourceFlowGraph.SetStorage("Water", 100);
-            _resourceFlowGraph.SetStorage("o2", 100);
-            _resourceFlowGraph.SetStorage("h2", 10);
-            _resourceFlowGraph.DebugGraph();
-
-            _efficiencyManager = new EfficiencyManager(true, 5, 50);
-            _harvesterManager = new HarvesterManager();
-            _converterManager = new ConversionManager();
+            _efficiencyManager = new EfficiencyManager();
+            _resourcePartManager = new ResourcePartManager(_efficiencyManager, _resourceFlowGraph);
+            //_resourceFlowGraph.AddHarvester("Ore", 0.1f, 10);
+            //_resourceFlowGraph.AddHarvester("Fox", 0.1f, 10);
+            //_resourceFlowGraph.AddFlow("Ore", "Oxidizer", 0.5f, 0.2f, 10);
+            //_resourceFlowGraph.AddFlow("Ore", "LiquidFuel", 0.5f, 0.2f, 10);
+            //_resourceFlowGraph.AddHarvester("Water", 5f, 10);
+            //_resourceFlowGraph.AddFlow("Water", "o2", 0.5f, 0.2f, 10);
+            //_resourceFlowGraph.AddFlow("Water", "h2", 0.5f, 0.2f, 10);
+            //_resourceFlowGraph.AddFlow("o2", "Oxidizer", 0.5f, 0.2f, 10);
+            //_resourceFlowGraph.AddFlow("Fox", "Oxidizer", 0.5f, 0.2f, 10);
+            //_resourceFlowGraph.AssignXLevels();
+            //_resourceFlowGraph.AssignYLevels();
+            //_resourceFlowGraph.AddStorage("Ore", 10000);
+            //_resourceFlowGraph.AddStorage("Oxidizer", 100);
+            //_resourceFlowGraph.AddStorage("LiquidFuel", 100);
+            //_resourceFlowGraph.AddStorage("Water", 100);
+            //_resourceFlowGraph.AddStorage("o2", 100);
+            //_resourceFlowGraph.AddStorage("h2", 10);
+            //_resourceFlowGraph.DebugGraph();
 
             _closeButton = new ButtonView(new Rect(_windowRect.width - 25, 5, 20, 20), "X", () => _showWindow = false, Color.red);
             _resourceView = new ResourceView(_resourceFlowGraph, _windowRect.width);
@@ -112,19 +109,21 @@ namespace KwarterMaster
         {
             _closeButton.Draw();
 
-            _converterManager.Update();
-            _harvesterManager.Update();
-            _resourceFlowGraph.CalculateProductionRates();
+            Debug.Log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+            _resourceFlowGraph.Clear();
+            _resourceFlowGraph.DebugGraph();
+            Debug.Log("=====================================");
+            _resourcePartManager.GetParts();
+            _resourceFlowGraph.DebugGraph();
+            Debug.Log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+            _resourceFlowGraph.Update();
+            _resourceFlowGraph.DebugGraph();
 
             _resourceView.Draw();
 
             _toolbarView.Draw();
 
             GUI.DragWindow();
-        }
-
-        private void UpdateHarvesterData()
-        {
         }
     }
 }
