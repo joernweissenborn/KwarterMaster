@@ -179,7 +179,7 @@ namespace KwarterMaster
 
         public void SetStorage(string resource, float storageAmount)
         {
-            GetNode(resource).AvailableStorage = storageAmount;
+            GetNode(resource).Storage = storageAmount;
         }
 
         public List<ResourceFlow> GetInputFlows(ResourceNode node, bool include_harvesters = false)
@@ -367,7 +367,7 @@ namespace KwarterMaster
 
             foreach (var node in productNodes.Values)
             {
-                Debug.Log($"Storage for {node.Name}: {node.AvailableStorage}");
+                Debug.Log($"Storage for {node.Name}: {node.Storage}");
                 Debug.Log($"XLevel for {node.Name}: {node.XLevel}, YLevel for {node.Name}: {node.YLevel}");
             }
         }

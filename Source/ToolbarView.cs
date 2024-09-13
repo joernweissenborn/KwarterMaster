@@ -22,7 +22,6 @@ namespace KwarterMaster
                 efficiencyManager.IsEngineerOnBoard = engineerPresent;
             }
 
-            GUILayout.FlexibleSpace();
 
             if (efficiencyManager.IsEngineerOnBoard)
             {
@@ -33,6 +32,7 @@ namespace KwarterMaster
                     efficiencyManager.EngineerStars = Mathf.Clamp(engineerStars, 0, 5);
                 }
             }
+            GUILayout.FlexibleSpace();
             // Display efficiency multiplier
             GUILayout.Label($"Efficiency Multiplier: {efficiencyManager.CalculateEfficiencyMultiplier():F2}");
             GUILayout.EndHorizontal();

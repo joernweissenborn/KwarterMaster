@@ -20,12 +20,6 @@ namespace KwarterMaster
                 _scrollPosition, GUILayout.Width(_width), GUILayout.Height(500)
             );
 
-            // Set up basic node positions
-            Vector2 orePosition = new Vector2(10, 10);
-            Vector2 lfPosition = new Vector2(220, 70);
-            Vector2 oxPosition = new Vector2(220, 130);
-
-
             // Determine the scrollable area size based on node positions
             float contentWidth = (_resourceFlowGraph.GetMaxXLevel() + 1) * (ResourceNode.Width + ResourceNode.XSpacing);
             float contentHeight = (_resourceFlowGraph.GetMaxYLevel() + 1) * (ResourceNode.Height + ResourceNode.YSpacing);

@@ -19,21 +19,21 @@ namespace KwarterMaster
         private static int _ySpacing = 10;
         public static int YSpacing { get { return _ySpacing; } }
         public string Name { get; private set; }
-        public float AvailableStorage { get; set; }
 
         public int XLevel { get; set; }
         public int YLevel { get; set; }
 
+        public float Storage { get; set; }
         public float ProductionRate { get; set; }
         public float ProductionRateDay { get { return GetActualProductionRate() * 60 * 60 * 6; } }
-        public float TimeTillFull { get { return AvailableStorage / ProductionRateDay; } }
+        public float TimeTillFull { get { return Storage / ProductionRateDay; } }
 
         public ResourceNode(string name)
         {
             Name = name;
             XLevel = -1;
             YLevel = -1;
-            AvailableStorage = 0F;
+            Storage = 0F;
             ProductionRate = 0F;
         }
 
@@ -93,7 +93,7 @@ namespace KwarterMaster
             GUI.Label(box, $"{GetActualProductionRate():F3} ({ProductionRate:F2}) U/s", _productionStyle);
             GUI.Label(box, $"{ProductionRateDay / 1000:F2} kU/d", _dailyProductionStyle);
 
-            float storageAmount = AvailableStorage;
+            float storageAmount = Storage;
             string unit = "";
             if (storageAmount > 1000)
             {
@@ -104,15 +104,52 @@ namespace KwarterMaster
         }
     }
 
+    // A singleton to store ressource concentrations
+    public class ResourceConcentration
+    {
+        private static ResourceConcentration _instance;
+        public static ResourceConcentration Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = new ResourceConcentration();
+                }
+                return _instance;
+            }
+        }
+
+        private ResourceConcentration()
+        {
+            Concentrations = new System.Collections.Generic.Dictionary<string, int>();
+        }
+
+        public System.Collections.Generic.Dictionary<string, int> Concentrations { get; private set; }
+    }
+
     public class HarvesterNode : ResourceNode
     {
         private static GUIStyle _concentrationStyle;
         private static GUIStyle _concentrationLabelStyle;
-        private int _concentration;
+        private int _concentration
+        {
+            get
+            {
+                if (ResourceConcentration.Instance.Concentrations.ContainsKey(Name))
+                {
+                    return ResourceConcentration.Instance.Concentrations[Name];
+                }
+                return 5;
+            }
+            set
+            {
+                ResourceConcentration.Instance.Concentrations[Name] = value;
+            }
+        }
 
         public HarvesterNode(string name) : base(name)
         {
-            _concentration = 5;
         }
 
         protected override void GetStyles()
