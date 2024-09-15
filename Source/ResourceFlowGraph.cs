@@ -29,6 +29,7 @@ namespace KwarterMaster
             AssignXLevels();
             AssignYLevels();
             CalculateProductionRates();
+            CalculateEcUsage();
         }
 
         private bool KnownResource(string resource)
@@ -62,18 +63,18 @@ namespace KwarterMaster
 
         public void AddFlow(string inputResource, string outputResource, float inputRate, float outputRate, float ecUsage)
         {
-            Debug.Log($"Adding flow from {inputResource ?? "Harvester"} to {outputResource} with input rate {inputRate}, output rate {outputRate}, EC usage {ecUsage}");
+            //Debug.Log($"Adding flow from {inputResource ?? "Harvester"} to {outputResource} with input rate {inputRate}, output rate {outputRate}, EC usage {ecUsage}");
             if (inputResource != null)
             {
 
                 if (!KnownResource(inputResource))
                 {
-                    Debug.Log($"Adding product node for {inputResource}");
+                    //Debug.Log($"Adding product node for {inputResource}");
                     productNodes[inputResource] = new ProductNode(inputResource);
                 }
                 if (!KnownResource(outputResource))
                 {
-                    Debug.Log($"Adding product node for {outputResource}");
+                    //Debug.Log($"Adding product node for {outputResource}");
                     productNodes[outputResource] = new ProductNode(outputResource);
                 }
             }
@@ -81,7 +82,7 @@ namespace KwarterMaster
             {
                 if (!KnownResource(outputResource))
                 {
-                    Debug.Log($"Adding harvester node for {outputResource}");
+                    //Debug.Log($"Adding harvester node for {outputResource}");
                     harvesterNodes[outputResource] = new HarvesterNode(outputResource);
                 }
             }
@@ -148,28 +149,17 @@ namespace KwarterMaster
             return productionRate;
         }
 
-        public float GetECUsage(ResourceNode node)
-        {
-            float ecUsage = 0f;
-            foreach (var flow in GetInputFlows(node, true))
-            {
-                ecUsage += flow.ECUsage;
-            }
-
-            return ecUsage;
-        }
-
         private void CalculateActualNodeProductionRate(ProductNode node)
         {
             node.ProductionRate = GetProductionRate(node);
             node.ActualProductionRate = GetActualProductionRate(node);
-            Debug.Log($"Node {node.Name} actual production rate: {node.ActualProductionRate}");
+            //Debug.Log($"Node {node.Name} actual production rate: {node.ActualProductionRate}");
 
             float actualInput = node.ActualProductionRate / GetOutputFlows(node).Count;
             foreach (var flow in GetOutputFlows(node))
             {
                 flow.ActualInputRate = actualInput;
-                Debug.Log($"Flow from {node.Name} to {flow.Output.Name} actual input rate: {flow.ActualInputRate}");
+                //Debug.Log($"Flow from {node.Name} to {flow.Output.Name} actual input rate: {flow.ActualInputRate}");
                 CalculateActualNodeProductionRate((ProductNode)flow.Output);
             }
         }
@@ -190,6 +180,35 @@ namespace KwarterMaster
                     CalculateActualNodeProductionRate((ProductNode)flow.Output);
                 }
             }
+        }
+        public float GetECUsage(ResourceNode node)
+        {
+            float ecUsage = 0f;
+            foreach (var flow in GetInputFlows(node, true))
+            {
+                ecUsage += flow.ECUsage;
+            }
+
+            return ecUsage;
+        }
+
+        public void CalculateEcUsage()
+        {
+            foreach (var node in GetNodes())
+            {
+                node.ECUsage = GetECUsage(node);
+            }
+        }
+
+        public float TotalECUsage()
+        {
+            float totalEcUsage = 0f;
+            foreach (var node in GetNodes())
+            {
+                totalEcUsage += node.ECUsage;
+            }
+
+            return totalEcUsage;
         }
 
         public void AddStorage(string resource, float storageAmount)
@@ -236,35 +255,35 @@ namespace KwarterMaster
             // Helper method to recursively assign xLevels
             void VisitNodeForXLevel(ResourceNode node)
             {
-                Debug.Log($"Visiting node {node.Name}");
+                //Debug.Log($"Visiting node {node.Name}");
                 // If the node has already been visited, skip it
                 if (visitedNodes.Contains(node))
                 {
-                    Debug.Log($"Node {node.Name} already visited, skipping");
+                    //Debug.Log($"Node {node.Name} already visited, skipping");
                     return;
                 }
 
-                Debug.Log($"Node {node.Name} not visited yet, processing");
+                //Debug.Log($"Node {node.Name} not visited yet, processing");
 
                 // Mark the node as visited
                 visitedNodes.Add(node);
-                Debug.Log($"Node {node.Name} has {GetInputFlows(node).Count} inputs");
+                //Debug.Log($"Node {node.Name} has {GetInputFlows(node).Count} inputs");
                 // If no inputs, assign xLevel 0 (harvester)
                 if (GetInputFlows(node).Count == 0)
                 {
                     node.XLevel = 0;
-                    Debug.Log($"Node {node.Name} is a harvester, assigned XLevel 0");
+                    //Debug.Log($"Node {node.Name} is a harvester, assigned XLevel 0");
                 }
                 else
                 {
-                    Debug.Log($"Node {node.Name} has inputs, calculating XLevel");
+                    //Debug.Log($"Node {node.Name} has inputs, calculating XLevel");
                     // Calculate xLevel based on max input xLevel + 1
                     foreach (var flow in GetInputFlows(node))
                     {
-                        Debug.Log($"Processing input {flow}");
+                        //Debug.Log($"Processing input {flow}");
                         VisitNodeForXLevel(flow.Input);  // Ensure input node is processed first
                         node.XLevel = Mathf.Max(node.XLevel, flow.Input.XLevel + 1);
-                        Debug.Log($"Node {node.Name} assigned XLevel {node.XLevel} based on input {flow.Input.Name}");
+                        //Debug.Log($"Node {node.Name} assigned XLevel {node.XLevel} based on input {flow.Input.Name}");
                     }
                 }
             }
@@ -290,7 +309,7 @@ namespace KwarterMaster
             // Helper method to recursively assign yLevels for the outputs of a node
             void VisitNodeForYLevel(ResourceNode node)
             {
-                Debug.Log($"Visiting node: {node.Name}, XLevel: {node.XLevel}, YLevel: {node.YLevel}");
+                //Debug.Log($"Visiting node: {node.Name}, XLevel: {node.XLevel}, YLevel: {node.YLevel}");
 
                 // Track whether it's the first output
                 bool isFirstOutput = true;
@@ -305,17 +324,17 @@ namespace KwarterMaster
                             // First output: same yLevel as the input node
                             flow.Output.YLevel = node.YLevel;
                             isFirstOutput = false;  // Mark that we've handled the first output
-                            Debug.Log($"First output: {flow.Output.Name} inherits YLevel {flow.Output.YLevel} from {node.Name}");
+                            //Debug.Log($"First output: {flow.Output.Name} inherits YLevel {flow.Output.YLevel} from {node.Name}");
                         }
                         else
                         {
                             // Increment the Y level for subsequent outputs
                             globalMaxYLevel++;
                             flow.Output.YLevel = globalMaxYLevel;
-                            Debug.Log($"Subsequent output: {flow.Output.Name} assigned new YLevel {flow.Output.YLevel} (incremented)");
+                            //Debug.Log($"Subsequent output: {flow.Output.Name} assigned new YLevel {flow.Output.YLevel} (incremented)");
                         }
 
-                        Debug.Log($"Node {flow.Output.Name} assigned YLevel {flow.Output.YLevel} based on input {node.Name}");
+                        //Debug.Log($"Node {flow.Output.Name} assigned YLevel {flow.Output.YLevel} based on input {node.Name}");
                     }
 
                     // Recursively visit the output node
@@ -331,7 +350,7 @@ namespace KwarterMaster
                 {
                     currentYLevels[node.XLevel] = node.YLevel + 1;
                 }
-                Debug.Log($"Updated currentYLevels[{node.XLevel}] to {currentYLevels[node.XLevel]} after processing {node.Name}");
+                //Debug.Log($"Updated currentYLevels[{node.XLevel}] to {currentYLevels[node.XLevel]} after processing {node.Name}");
             }
 
             // Start by processing all the harvesters (nodes with no inputs)
@@ -342,7 +361,7 @@ namespace KwarterMaster
                 {
                     globalMaxYLevel++;  // Increment the global max Y level
                     node.YLevel = globalMaxYLevel;  // Start after the maximum Y level encountered
-                    Debug.Log($"Harvester {node.Name} assigned YLevel {node.YLevel}");
+                    //Debug.Log($"Harvester {node.Name} assigned YLevel {node.YLevel}");
                 }
 
                 // Visit all its outputs
@@ -350,7 +369,7 @@ namespace KwarterMaster
 
                 // After processing this harvester and its outputs, update globalMaxYLevel
                 globalMaxYLevel = Mathf.Max(globalMaxYLevel, currentYLevels.ContainsKey(node.XLevel) ? currentYLevels[node.XLevel] : globalMaxYLevel);
-                Debug.Log($"Updated globalMaxYLevel to {globalMaxYLevel} after processing harvester {node.Name}");
+                //Debug.Log($"Updated globalMaxYLevel to {globalMaxYLevel} after processing harvester {node.Name}");
             }
         }
 

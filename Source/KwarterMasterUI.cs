@@ -43,14 +43,13 @@ namespace KwarterMaster
             //_resourceFlowGraph.AddStorage("h2", 10);
             //_resourceFlowGraph.DebugGraph();
 
-            _closeButton = new ButtonView(new Rect(_windowRect.width - 25, 5, 20, 20), "X", () => _showWindow = false, Color.red);
+            _closeButton = new ButtonView(new Rect(_windowRect.width - 5, 5, 20, 20), "X", () => _showWindow = false, Color.red);
             _resourceView = new ResourceView(_resourceFlowGraph, _windowRect.width);
             _toolbarView = new ToolbarView(_efficiencyManager);
 
             // Load the button texture
-            _buttonTexture = new Texture2D(38, 38);
-            // Load your texture here, for example:
-            // _buttonTexture.LoadImage(File.ReadAllBytes("path_to_your_texture.png"));
+            //_buttonTexture = new Texture2D(38, 38);
+            _buttonTexture = GameDatabase.Instance.GetTexture("KwarterMaster/Textures/KwaterMaster", false);
             // Register the toolbar button
             if (ApplicationLauncher.Instance != null)
             {
@@ -109,15 +108,16 @@ namespace KwarterMaster
         {
             _closeButton.Draw();
 
-            Debug.Log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+            //Debug.Log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
             _resourceFlowGraph.Clear();
-            _resourceFlowGraph.DebugGraph();
-            Debug.Log("=====================================");
+            //_resourceFlowGraph.DebugGraph();
+            //Debug.Log("=====================================");
             _resourcePartManager.GetParts();
-            _resourceFlowGraph.DebugGraph();
-            Debug.Log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+            //_resourceFlowGraph.DebugGraph();
+            //Debug.Log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
             _resourceFlowGraph.Update();
-            _resourceFlowGraph.DebugGraph();
+            //_resourceFlowGraph.DebugGraph();
+            _toolbarView.ECUsage = _resourceFlowGraph.TotalECUsage();
 
             _resourceView.Draw();
 

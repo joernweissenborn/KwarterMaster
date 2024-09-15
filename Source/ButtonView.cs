@@ -36,7 +36,8 @@ namespace KwarterMaster
             {
                 _style = new GUIStyle(GUI.skin.button)
                 {
-                    normal = { textColor = _color }
+                    normal = { textColor = _color },
+                    alignment = TextAnchor.MiddleCenter
                 };
             }
         }

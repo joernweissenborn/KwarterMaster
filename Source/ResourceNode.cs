@@ -27,6 +27,7 @@ namespace KwarterMaster
         public float ProductionRate { get; set; }
         public float ProductionRateDay { get { return GetActualProductionRate() * 60 * 60 * 6; } }
         public float TimeTillFull { get { return Storage / ProductionRateDay; } }
+        public float ECUsage { get; set; }
 
         public ResourceNode(string name)
         {
@@ -35,6 +36,7 @@ namespace KwarterMaster
             YLevel = -1;
             Storage = 0F;
             ProductionRate = 0F;
+            ECUsage = 0F;
         }
 
         public abstract float GetActualProductionRate();
@@ -91,10 +93,18 @@ namespace KwarterMaster
             GUI.Box(box, Name, _titleStyle);
 
             GUI.Label(box, $"{GetActualProductionRate():F3} ({ProductionRate:F2}) U/s", _productionStyle);
-            GUI.Label(box, $"{ProductionRateDay / 1000:F2} kU/d", _dailyProductionStyle);
+
+            string unit = "";
+            float productionRateDay = ProductionRateDay;
+            if (productionRateDay > 1000)
+            {
+                productionRateDay /= 1000;
+                unit = "k";
+            }
+            GUI.Label(box, $"{productionRateDay:F2} {unit}U/d", _dailyProductionStyle);
 
             float storageAmount = Storage;
-            string unit = "";
+            unit = "";
             if (storageAmount > 1000)
             {
                 storageAmount /= 1000;
@@ -122,17 +132,17 @@ namespace KwarterMaster
 
         private ResourceConcentration()
         {
-            Concentrations = new System.Collections.Generic.Dictionary<string, int>();
+            Concentrations = new System.Collections.Generic.Dictionary<string, float>();
         }
 
-        public System.Collections.Generic.Dictionary<string, int> Concentrations { get; private set; }
+        public System.Collections.Generic.Dictionary<string, float> Concentrations { get; private set; }
     }
 
     public class HarvesterNode : ResourceNode
     {
         private static GUIStyle _concentrationStyle;
         private static GUIStyle _concentrationLabelStyle;
-        private int _concentration
+        private float _concentration
         {
             get
             {
@@ -166,7 +176,7 @@ namespace KwarterMaster
                 {
                     //normal = { background = null },
                     alignment = TextAnchor.MiddleLeft,
-                    padding = new RectOffset(50, 0, 0, 0),
+                    padding = new RectOffset(70, 0, 0, 0),
                     fontSize = 14,
                 };
             }
@@ -182,10 +192,10 @@ namespace KwarterMaster
             base.Draw();
 
             Rect box = Box();
-            Rect inputBox = new Rect(box.x + 5, box.y + box.height / 2 - 7.5F, 40, 15);
-            string concentrationStr = GUI.TextField(inputBox, _concentration.ToString(), _concentrationStyle);
+            Rect inputBox = new Rect(box.x + 5, box.y + box.height / 2 - 7.5F, 60, 15);
+            string concentrationStr = GUI.TextField(inputBox, $"{_concentration:F2}", _concentrationStyle);
             GUI.Label(box, "%", _concentrationLabelStyle);
-            if (int.TryParse(concentrationStr, out int concentration))
+            if (float.TryParse(concentrationStr, out float concentration))
             {
                 _concentration = Mathf.Clamp(concentration, 0, 100);
             }

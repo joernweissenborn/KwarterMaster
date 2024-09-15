@@ -46,6 +46,8 @@ namespace KwarterMaster
         {
             VisitModules<ModuleResourceHarvester>(harvester =>
             {
+                Debug.Log("Harvester found: " + harvester.part.partInfo.title);
+                Debug.Log("Efficiency: " + harvester.Efficiency);
                 float output = harvester.Efficiency * _efficiencyManager.Multiplier;
                 float powerConsumption = (float)harvester.eInput.Ratio * _efficiencyManager.Multiplier;
                 string resourceName = harvester.ResourceName;
@@ -57,9 +59,9 @@ namespace KwarterMaster
         {
             VisitModules<ModuleResourceConverter>(converter =>
             {
-                Debug.Log("Converter found: " + converter.part.partInfo.title);
-                Debug.Log("active: " + converter.IsActivated);
-                Debug.Log("from, to: " + converter.inputList[0].ResourceName + " -> " + converter.outputList[0].ResourceName);
+                //Debug.Log("Converter found: " + converter.part.partInfo.title);
+                //Debug.Log("active: " + converter.IsActivated);
+                //Debug.Log("from, to: " + converter.inputList[0].ResourceName + " -> " + converter.outputList[0].ResourceName);
                 if (!converter.IsActivated)
                 {
                     return;
@@ -69,7 +71,7 @@ namespace KwarterMaster
 
                 if (hasMultyInput)
                 {
-                    Debug.LogWarning("Converter has multiple inputs. This is not supported.");
+                    //Debug.LogWarning("Converter has multiple inputs. This is not supported.");
                     return;
                 }
 
@@ -79,7 +81,7 @@ namespace KwarterMaster
                 float ratio = _efficiencyManager.Multiplier / converter.outputList.Count;
                 foreach (var input in converter.inputList)
                 {
-                    Debug.Log("Input: " + input.ResourceName + " " + input.Ratio);
+                    //Debug.Log("Input: " + input.ResourceName + " " + input.Ratio);
                     if (input.ResourceName == "ElectricCharge")
                     {
                         powerConsumption = (float)(input.Ratio * ratio);
@@ -92,7 +94,7 @@ namespace KwarterMaster
                 }
                 foreach (var output in converter.outputList)
                 {
-                    Debug.Log("Output: " + output.ResourceName + " " + output.Ratio + "Input: " + inputResource + " " + inputRate);
+                    //Debug.Log("Output: " + output.ResourceName + " " + output.Ratio + "Input: " + inputResource + " " + inputRate);
                     _resourceFlowGraph.AddFlow(inputResource, output.ResourceName, inputRate, (float)(output.Ratio * _efficiencyManager.Multiplier), powerConsumption);
                 }
             });
@@ -104,7 +106,7 @@ namespace KwarterMaster
             {
                 foreach (PartResource resource in part.Resources)
                 {
-                    Debug.Log("Resource: " + resource.resourceName + " " + resource.maxAmount);
+                    //Debug.Log("Resource: " + resource.resourceName + " " + resource.maxAmount);
                     _resourceFlowGraph.AddStorage(resource.resourceName, (float)resource.maxAmount);
                 }
             });
