@@ -5,11 +5,12 @@ namespace KwarterMaster
 {
     public class ButtonView
     {
-        private string _buttonText;
+        private readonly string _buttonText;
         private GUIStyle _style;
         private Color _color = Color.white;
-        private System.Action _onClick;
+        private readonly System.Action _onClick;
         private Rect _box;
+        public Rect Box { get => _box; set => _box = value; }
 
         public ButtonView(string text, System.Action onClickAction)
         {

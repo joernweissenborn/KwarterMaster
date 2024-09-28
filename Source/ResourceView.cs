@@ -5,24 +5,24 @@ namespace KwarterMaster
     public class ResourceView
     {
         private Vector2 _scrollPosition = Vector2.zero;
-        private float _width;
-        private ResourceFlowGraph _resourceFlowGraph;
+        private readonly ResourceFlowGraph _resourceFlowGraph;
 
-        public ResourceView(ResourceFlowGraph resourceFlowGraph, float width)
+        public ResourceView(ResourceFlowGraph resourceFlowGraph)
         {
             _resourceFlowGraph = resourceFlowGraph;
-            _width = width;
         }
 
         public void Draw()
         {
             _scrollPosition = GUILayout.BeginScrollView(
-                _scrollPosition, GUILayout.Width(_width), GUILayout.Height(500)
+                _scrollPosition, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true)
             );
 
             // Determine the scrollable area size based on node positions
             float contentWidth = (_resourceFlowGraph.GetMaxXLevel() + 1) * (ResourceNode.Width + ResourceNode.XSpacing);
-            float contentHeight = (_resourceFlowGraph.GetMaxYLevel() + 1) * (ResourceNode.Height + ResourceNode.YSpacing);
+            int maxYLevel = _resourceFlowGraph.GetMaxYLevel();
+            float contentHeight = (maxYLevel + 1) * ResourceNode.Height + maxYLevel * ResourceNode.YSpacing;
+
             // Create a larger area for content to avoid clipping
             GUILayout.BeginHorizontal(GUILayout.Width(contentWidth), GUILayout.Height(contentHeight));
             GUILayout.BeginVertical();

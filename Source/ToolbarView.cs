@@ -1,11 +1,10 @@
-using System.Diagnostics.Tracing;
 using UnityEngine;
 
 namespace KwarterMaster
 {
     public class ToolbarView
     {
-        private EfficiencyManager efficiencyManager;
+        private readonly EfficiencyManager efficiencyManager;
         public float ECUsage { get; set; }
 
         public ToolbarView(EfficiencyManager manager)
@@ -20,8 +19,8 @@ namespace KwarterMaster
 
             GUILayout.Label("Engineer On Board:");
             int engineerStars = GUILayout.SelectionGrid(
-                efficiencyManager.IsEngineerOnBoard ? efficiencyManager.EngineerStars + 1 : 0, 
-                new string[] { "None", "Lvl0", "Lvl1", "Lvl2", "Lvl3", "Lvl4", "Lvl5" }, 7
+                efficiencyManager.IsEngineerOnBoard ? efficiencyManager.EngineerStars + 1 : 0,
+                new string[] { "None", "L0", "L1", "L2", "L3", "L4", "L5" }, 7
             );
             efficiencyManager.EngineerStars = engineerStars - 1;
             efficiencyManager.IsEngineerOnBoard = engineerStars > 0;
